@@ -1,0 +1,14 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net8.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Serialize.Linq" Version="3.0.152" />
+      <PackageReference Include="Tmds.ExecFunction" Version="0.8.0" />
+    </ItemGroup>
+
+</Project>
