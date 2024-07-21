@@ -1,7 +1,3 @@
-using System.Text.Json;
-using InterprocessComms;
-using NUnit.Framework;
-
 namespace InterprocessComms.Tests;
 
 class ChildProcessDelegatorTests
@@ -22,7 +18,7 @@ class ChildProcessDelegatorTests
     public async Task RunsAsExpected()
     {
         var aVariable = 4;
-        var result = await _childProcess.Invoke( a=> a.DoSomething(4, new StaticClass()));
+        var result = await _childProcess.Invoke( a=> a.DoSomething(aVariable, new StaticClass()));
         Assert.That(result, Is.EqualTo(4));
     }
     

@@ -42,8 +42,8 @@ public class ChildProcessDelegator<T>(
         {
             var pipeNameArg = args[0];
             var initTargetArg = args[1];
-            var knownTypes = JsonSerializer.Deserialize<IEnumerable<Type>>(args[2]);
-            await ChildProcessWorker(pipeNameArg, initTargetArg, knownTypes);
+            var knownTypesArg = JsonSerializer.Deserialize<IEnumerable<Type>>(args[2]) ?? [];
+            await ChildProcessWorker(pipeNameArg, initTargetArg, knownTypesArg);
         }, new[]
         {
             _pipeName, 
@@ -54,11 +54,11 @@ public class ChildProcessDelegator<T>(
             x.StartInfo.RedirectStandardError = true;
             x.StartInfo.RedirectStandardOutput = true;
         });
-        _childProcess.OutputDataReceived += (sendingProcess, outLine) =>
+        _childProcess.OutputDataReceived += (_, outLine) =>
         {
             LogFromChildProcessOutput(outLine.Data ?? string.Empty);
         };
-        _childProcess.ErrorDataReceived += (sendingProcess, errorLine) =>
+        _childProcess.ErrorDataReceived += (_, errorLine) =>
         {
             LogFromChildProcessOutput(errorLine.Data ?? string.Empty);
         };
@@ -112,7 +112,7 @@ public class ChildProcessDelegator<T>(
         Console.WriteLine($"Child process exiting...");
     }
 
-    private static object? CreateInvokeTargetUsingFactoryExpression(string invokeTargetFactoryExpression, ExpressionSerializer expressionSerializer)
+    private static object CreateInvokeTargetUsingFactoryExpression(string invokeTargetFactoryExpression, ExpressionSerializer expressionSerializer)
     {
         var invokeTargetFactoryParsedExpression = (LambdaExpression)expressionSerializer.DeserializeText(invokeTargetFactoryExpression);
         var invokeTarget = invokeTargetFactoryParsedExpression.Compile().DynamicInvoke(null);
@@ -121,17 +121,17 @@ public class ChildProcessDelegator<T>(
         return invokeTarget;
     }
 
-    public async Task<TResponse> Invoke<TResponse>(Expression<Func<T,TResponse>> expr)
+    public async Task<TResponse?> Invoke<TResponse>(Expression<Func<T,TResponse>> expr)
     {
         return await Invoke<TResponse>((Expression)expr);
     }
     
     public async Task Invoke(Expression<Action<T>> expr)
     {
-        await Invoke<object?>((Expression)expr);
+        await Invoke<object?>(expr);
     }
 
-    private async Task<TResponse> Invoke<TResponse>(Expression expr)
+    private async Task<TResponse?> Invoke<TResponse>(Expression expr)
     {
         if (_parentClientPipe == null)
             throw new InvalidOperationException("No pipe to send data to. Child process may not be running");
